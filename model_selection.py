@@ -1,5 +1,15 @@
-#estimating number of hits with combined data
+from scipy.integrate import odeint
+import numpy as np
+import matplotlib.pyplot as plt
+from  scipy.optimize import least_squares
+from mylib import main_model,read_excel
+from mylib import exp_path,sim_path
 
+
+# 1. this file fit the experimental data and idenitfy the no of hits
+
+
+# objective functions
 def prediction_error_individual(p0, y0_initial,true_data,time1,t,model_name,nhits,m_k1):
 # predicting curve based on the parameteer
     params={'k1':p0[0] ,'k3':p0[1] ,'u0':p0[2] ,'nhits':nhits ,'k2':p0[3],'d':p0[4]}
@@ -26,7 +36,7 @@ def prediction_error_combined(p0,y0_initial_1,y0_initial_2,true_data_1,true_data
 
     
 def nhit_fitting(residuals_func,model_name,nhits_list,m_k1,sheet):
-    time1,dataset=reading_csv(path+'/tumor_cell_data.xlsx',sheet)
+    time1,dataset=read_excel(exp_path+'/tumor_cell_data.xlsx',sheet)
    
     for data_idx in range(2):
         residual=[];parameter=[];AIC=[] 
@@ -44,21 +54,20 @@ def nhit_fitting(residuals_func,model_name,nhits_list,m_k1,sheet):
             log_likelihood = -(len(time1)/2)*np.log(best_ssq/len(time1)) #- (len(time1)/2)*np.log(2*np.pi) - (len(time1)/2)
             no_of_parameter=nhits*1
             AIC.append(2*(no_of_parameter+1)-2*log_likelihood)
-            residual.append(best_ssq)
+            residual.append(best_ssq/len(time1))
         
         ax[0].plot(nhits_list,residual,label=str(sheet)+str(data_idx),marker='o', linestyle='--')
         ax[1].plot(nhits_list,AIC,label=str(sheet)+str(data_idx),marker='o', linestyle='--')
 
         
 def nhit_fitting_combined(residuals_func,model_name,nhits_list,m_k1,sheet):
-    time1,dataset=reading_csv(path+'/tumor_cell_data.xlsx',sheet)
+    time1,dataset=read_excel(exp_path+'/tumor_cell_data.xlsx',sheet)
     residual=[];parameter=[] ;AIC=[]
     
     for nhits_idx,nhits in enumerate(nhits_list):
         t=np.linspace(0,2900,2901)
         y0_initial_1=np.zeros((nhits+1)*2,);y0_initial_1[0]=dataset[0][0] ; y0_initial_1[-1]=3*dataset[0][0] #1st initial conditions
         y0_initial_2=np.zeros((nhits+1)*2,);y0_initial_2[0]=dataset[1][0] ; y0_initial_2[-1]=3*dataset[1][0] #1st initial conditions
-        
         residual_argument=(y0_initial_1,y0_initial_2,dataset[0],dataset[1], time1,t,model_name,m_k1,nhits)
         k1=1e-4;k3=1e-2;u0=1e-3;k2=1e-3;d=1e-3
         p0 = [k1,k3,u0,k2,d]  # Initial parameter values
@@ -84,34 +93,36 @@ def main_inidividual():
     nhits_list=np.arange(2,8,1)
     
     residuals_func=prediction_error_individual
-    nhit_fitting(residuals_func,model_name=model2,nhits_list=nhits_list,m_k1=1,sheet='coated')
+    nhit_fitting(residuals_func,model_name=main_model,nhits_list=nhits_list,m_k1=1,sheet='coated')
     
     residuals_func=prediction_error_individual
-    nhit_fitting(residuals_func,model_name=model2,nhits_list=nhits_list,m_k1=1,sheet='uncoated')
+    nhit_fitting(residuals_func,model_name=main_model,nhits_list=nhits_list,m_k1=1,sheet='uncoated')
     
     # fitting using combined data for number of hits
     residuals_func=prediction_error_combined
     #nhit_fitting_combined(residuals_func,model_name=model2,nhits_list=nhits_list,m_k1=1,sheet='coated')
     #ax[0].set_xscale('log')
     ax[0].legend()
-    plt.savefig(path2+'/nhits_fitting.svg',format="svg")
+    plt.show()
+    plt.savefig(sim_path+'/nhits_fitting.svg',format="svg")
 
-#main_inidividual()
+
+main_inidividual()
 def main_combined():
     
     nhits_list=np.arange(2,10,1)
     
     residuals_func=prediction_error_combined
-    nhit_fitting_combined(residuals_func,model_name=model2,nhits_list=nhits_list,m_k1=1,sheet='coated')
+    nhit_fitting_combined(residuals_func,model_name=main_model,nhits_list=nhits_list,m_k1=1,sheet='coated')
     
     residuals_func=prediction_error_combined
-    nhit_fitting_combined(residuals_func,model_name=model2,nhits_list=nhits_list,m_k1=0.1,sheet='uncoated')
+    nhit_fitting_combined(residuals_func,model_name=main_model,nhits_list=nhits_list,m_k1=0.1,sheet='uncoated')
     
     # fitting using combined data for number of hits
     residuals_func=prediction_error_combined
     #nhit_fitting_combined(residuals_func,model_name=model2,nhits_list=nhits_list,m_k1=1,sheet='coated')
     #ax[0].set_xscale('log')
     ax[0].legend()
-    plt.savefig(path2+'/nhits_fitting.svg',format="svg")
+    plt.savefig(sim_path+'/nhits_fitting.svg',format="svg")
 
-main_combined()
+#main_combined()

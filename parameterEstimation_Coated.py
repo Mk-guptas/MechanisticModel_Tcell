@@ -1,18 +1,32 @@
-#COMBINED fitting and parameters calculated and plotting
+import numpy as np
+import matplotlib.pyplot as plt
+from mylib import main_model,least_square_fitting_algorithim
+from mylib import exp_path,sim_path
+import pandas as pd
+from scipy.integrate import odeint
+
+
+
+#1. This files uses least square to estiamte the mean values and quadratic chi square assumption based variance calculation.
+#2. this one is for the treated/coated case only
+#3. it always do the combined fittting of the data
+#4. we assume that k_1 remain same for all ROI
+
+
 
 
 ## Loading the data to train the model
 sheet='coated'
-dfs=pd.read_excel(path+'/tumor_cell_data.xlsx', sheet_name=sheet)
+dfs=pd.read_excel(exp_path+'/tumor_cell_data.xlsx', sheet_name=sheet)
 exp_time=np.array(dfs['time']).flatten()*60
-no_of_data=5
+no_of_data=2
 training_data=np.zeros((no_of_data,len(exp_time)))
 for i in range(no_of_data):
     training_data[i]=np.array(dfs['dataset_'+str(i)]).flatten()
 print(f'shape of the training data is {np.shape(training_data)}')
 
 
-
+# objective function: sum of readiual square is minimized
 def prediction_error_combined(p0,training_data,exp_time,model_name,t,nhits):
     # solving ODE using odeint for a given set of parameter ;Note: We will solve for two different initial conditions    
     params={'k1':p0[0] ,'k3':p0[1] ,'u0':p0[2] ,'nhits':nhits }
@@ -27,7 +41,6 @@ def prediction_error_combined(p0,training_data,exp_time,model_name,t,nhits):
         predicted_data_1= odeint(model_name, y0_initial, t,args=(params,))
         predicted_data_set[data_idx]=np.sum(predicted_data_1[np.rint(exp_time).astype(int),:-1],axis=1)
         
-
     return predicted_data_set.flatten()-training_data.flatten()
 
 
@@ -35,7 +48,7 @@ def prediction_error_combined(p0,training_data,exp_time,model_name,t,nhits):
 
 # Using pyhton inbuilt least square to fit the data : giving argument to fit the objective function
 residuals_func=prediction_error_combined
-nhits=4;model_name=model2
+nhits=4;model_name=main_model
 t = np.linspace(0, 2900, 2901)  # Time points for simulation
 k1=0.00001;k3=0.01;u0=5e-4
 p0 = [k1,k3,u0]  # Initial parameter values
@@ -54,7 +67,7 @@ print("Standard deviations:", std_dev)
 print("Correlation matrix:\n", corr_matrix)
 
     
-### Plotting the fitted result to visulize 
+### Plotting the fitted result to visulize  ############################################################################
 if True:
     fig,ax=plt.subplots(1,2,figsize=(15,3))# plot a figure    
     if sheet=='coated':
@@ -90,7 +103,7 @@ if True:
               bbox=dict(facecolor='white', alpha=0.6),multialignment='left',transform=ax[0].transAxes)
 
     
-    plt.savefig(path2+filename,format="svg")
+    plt.savefig(sim_path+filename,format="svg")
     plt.show()
     #np.save(path2+'/residual_treated_low.npy',np.asarray(residual))
 

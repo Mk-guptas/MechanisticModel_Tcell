@@ -4,6 +4,9 @@ from scipy.optimize import least_squares
 import matplotlib.pyplot as plt
 
 
+# 1. this file contains the helper function to optimize the parameter and plot the profile likelihood plot
+# 2. the method inlcudes the use of scipy.optimize.least_square
+
 
 # Fisher information Method
 def compute_covariance_and_correlation(res_fit,residual_func,extra_argument):
@@ -124,11 +127,11 @@ def plot_profile_likelihoods(profiles,std_dev,p_best, best_ssq, param_names, gri
     for j, name in enumerate(param_names):
         plt.subplot(1, n_params, j+1)
         ssq_prof, _ = profiles[name]
-        plt.plot(grids[name][:len(ssq_prof)], ssq_prof, 'b.-', label='Profile SSQ')
+        plt.plot(grids[name][:len(ssq_prof)], ssq_prof, 'b.-', label='Profile MSE')
         plt.axhline(best_ssq + confidence_interval, color='r', linestyle='--', label='95% line')
-        plt.axhline(best_ssq, color='k', linestyle='--', label='Best fit SSQ')
-        #plt.axvline(p_best[j]+std_dev[j]*1.96, color='k', linestyle='--', label='Best fit SSQ')
-        #plt.axvline(p_best[j]-std_dev[j]*1.96, color='k', linestyle='--', label='Best fit SSQ')
+        plt.axhline(best_ssq, color='k', linestyle='--', label='Best fit MSE')
+        #plt.axvline(p_best[j]+std_dev[j]*1.96, color='k', linestyle='--', label='Best fit MSE')
+        #plt.axvline(p_best[j]-std_dev[j]*1.96, color='k', linestyle='--', label='Best fit MSE')
         plt.xlabel(name)
         plt.ylabel("MSE")
         #plt.title(f"Profile likelihood for {name}")

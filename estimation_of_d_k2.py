@@ -1,5 +1,5 @@
 #ESTImation of d and k2
-
+import numpy as np
 def estimate_d_k2():
     tumor_cell_count=np.asarray([40,20,9])
     apoptosis_time=np.asarray([2,3,4])
