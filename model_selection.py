@@ -9,6 +9,7 @@ from mylib import exp_path,sim_path
 # 1. this file fit the experimental data and idenitfy the no of hits
 
 
+
 # objective functions
 def prediction_error_individual(p0, y0_initial,true_data,time1,t,model_name,nhits,m_k1):
 # predicting curve based on the parameteer
@@ -54,6 +55,7 @@ def nhit_fitting(residuals_func,model_name,nhits_list,m_k1,sheet):
             log_likelihood = -(len(time1)/2)*np.log(best_ssq/len(time1)) #- (len(time1)/2)*np.log(2*np.pi) - (len(time1)/2)
             no_of_parameter=nhits*1
             AIC.append(2*(no_of_parameter+1)-2*log_likelihood)
+            print(dataset[data_idx][0])
             residual.append(best_ssq/len(time1))
         
         ax[0].plot(nhits_list,residual,label=str(sheet)+str(data_idx),marker='o', linestyle='--')
@@ -107,7 +109,7 @@ def main_inidividual():
     plt.savefig(sim_path+'/nhits_fitting.svg',format="svg")
 
 
-main_inidividual()
+#main_inidividual()
 def main_combined():
     
     nhits_list=np.arange(2,10,1)
@@ -123,6 +125,7 @@ def main_combined():
     #nhit_fitting_combined(residuals_func,model_name=model2,nhits_list=nhits_list,m_k1=1,sheet='coated')
     #ax[0].set_xscale('log')
     ax[0].legend()
+    plt.show()
     plt.savefig(sim_path+'/nhits_fitting.svg',format="svg")
 
-#main_combined()
+main_combined()

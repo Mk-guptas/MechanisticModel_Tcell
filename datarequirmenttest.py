@@ -1,3 +1,4 @@
+
 import numpy as np
 import matplotlib.pyplot as plt
 from mylib import main_model,least_square_fitting_algorithim,profile_likelihood_plotter
@@ -6,19 +7,38 @@ import pandas as pd
 from scipy.integrate import odeint
 
 
-# 1. this file plot the profile likelihood (MSE profile) for the case of treated
+
+#FOR OUR MODEL: paractical identifiablity analysis for our model with one data set generated synthetically
 
 
-## Loading the data to train the model
-sheet='coated'
-dfs=pd.read_excel(exp_path+'/tumor_cell_data.xlsx', sheet_name=sheet)
-exp_time=np.array(dfs['time']).flatten()*60
-no_of_data=2
-training_data=np.zeros((no_of_data,len(exp_time)))
-for i in range(no_of_data):
-    training_data[i]=np.array(dfs['dataset_'+str(i)]).flatten()
-print(f'shape of the training data is {np.shape(training_data)}')
 
+## generate simulation synthetic data
+nhits=4
+time_sampled=np.arange(0,2500,50)
+t=np.linspace(0,2900,2901)
+
+
+initial_conditions = np.asarray([150])
+no_of_data = len(initial_conditions)
+
+training_data = np.zeros((no_of_data, len(time_sampled)))
+
+true_params={'k1':1e-5 ,'k3':2e-3 ,'u0':5e-4 ,'nhits':nhits }
+noise_level=10
+
+for i, init_val in enumerate(initial_conditions):
+    y0 = np.zeros((nhits + 1) * 2)
+    y0[0] = init_val
+    y0[-1] = 3 * init_val
+
+    y_true = odeint(main_model, y0, t, args=(true_params,))
+    predicted_tumor = np.sum(y_true[time_sampled, :-1], axis=1)
+
+    noisy_data = predicted_tumor + noise_level * np.random.randn(len(predicted_tumor))
+
+    training_data[i, :] = noisy_data
+
+   
 
 
 # objective function: sum of readiual square is minimized
@@ -26,7 +46,6 @@ def prediction_error_combined(p0,training_data,exp_time,model_name,t,nhits):
     # solving ODE using odeint for a given set of parameter ;Note: We will solve for two different initial conditions    
     params={'k1':p0[0] ,'k3':p0[1] ,'u0':p0[2] ,'nhits':nhits }
 
-    
     # predicting curve based on the parameteer
     predicted_data_set=np.zeros_like(training_data)
     for data_idx,data_value in enumerate(training_data):
@@ -76,3 +95,4 @@ print("Correlation matrix:\n", corr_matrix)
 plt.savefig(sim_path+'/profilelikelihoodtreated.svg',format="svg")
 
 plt.show()
+    
