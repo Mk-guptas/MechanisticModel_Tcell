@@ -14,14 +14,14 @@ from scipy.integrate import odeint
 
 ## generate simulation synthetic data
 nhits=4
-time_sampled=np.arange(0,2500,50)
+exp_time=np.arange(0,2500,50)
 t=np.linspace(0,2900,2901)
 
 
-initial_conditions = np.asarray([150])
+initial_conditions = np.asarray([150,300])
 no_of_data = len(initial_conditions)
 
-training_data = np.zeros((no_of_data, len(time_sampled)))
+training_data = np.zeros((no_of_data, len(exp_time)))
 
 true_params={'k1':1e-5 ,'k3':2e-3 ,'u0':5e-4 ,'nhits':nhits }
 noise_level=10
@@ -32,7 +32,7 @@ for i, init_val in enumerate(initial_conditions):
     y0[-1] = 3 * init_val
 
     y_true = odeint(main_model, y0, t, args=(true_params,))
-    predicted_tumor = np.sum(y_true[time_sampled, :-1], axis=1)
+    predicted_tumor = np.sum(y_true[exp_time, :-1], axis=1)
 
     noisy_data = predicted_tumor + noise_level * np.random.randn(len(predicted_tumor))
 
@@ -78,7 +78,7 @@ bounds = ([  0,      1e-4,1e-4],\
 param_names = ['k1', 'k3','u0'] ;
 grid_bounds = {
     'k1': (1e-6, 5e-4),
-    'k3': (1e-3, 5e-2),
+    'k3': (1e-4, 5e-2),
     'u0':(1e-4,5e-3)
     }
 
@@ -92,7 +92,7 @@ print("Best-fit parameters:", p_best);print("Sum of squared residuals:", best_ss
 print(residual_var)
 print("Standard deviations:", std_dev)
 print("Correlation matrix:\n", corr_matrix)
-plt.savefig(sim_path+'/profilelikelihoodtreated.svg',format="svg")
+plt.savefig(sim_path+'/profilelikelihood_for_datarequiremnt'+str(no_of_data)+'.svg',format="svg")
 
 plt.show()
     
